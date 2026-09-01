@@ -119,7 +119,8 @@ def create_user(
     db_user = User(
             username = user.username,
             email = user.email,
-            password = hash_password(user.password)
+            password = hash_password(user.password),
+            role = user.role
         )
 
     db.add(db_user)
