@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class UserCreate(BaseModel):
     username : str
@@ -25,3 +25,17 @@ class UserUpdate(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class PostCreate(BaseModel):
+    title : str = Field(min_length=1, max_length=100)
+    content : str = Field(min_length=1)
+
+class PostResponse(BaseModel):
+    id : int
+    title : str
+    content : str
+    owner_id : int
+
+    model_config = {
+        "from_attributes":True
+    }
