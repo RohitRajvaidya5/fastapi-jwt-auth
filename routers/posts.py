@@ -1,4 +1,6 @@
 
+from typing import cast
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.orm import Session
 from starlette import status
@@ -79,7 +81,13 @@ def update_post(
             detail="Post not found"
         )
 
-    if db_post.owner_id != current_user.id:
+    if db_post.owner_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Post owner information is missing."
+        )
+
+    if not cast(bool, db_post.owner_id != current_user.id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You are not authorized to update this post."
