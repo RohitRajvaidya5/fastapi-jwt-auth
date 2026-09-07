@@ -6,7 +6,7 @@ from typing import Optional, cast
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from database import get_db
-from models import User
+from app.models import User
 
 SECRET_KEY = "your-super-secret-key-change-this-in-production"
 

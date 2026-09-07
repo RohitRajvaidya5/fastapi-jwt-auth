@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from database import get_db
-from models import User
+from app.models import User
 from schemas import UserCreate, UserResponse, UserUpdate
 from typing import List, cast
 from utils import hash_password

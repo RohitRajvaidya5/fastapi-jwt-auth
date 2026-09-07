@@ -6,9 +6,10 @@ from sqlalchemy.orm import Session
 from starlette import status
 
 from database import get_db
-from models import Post, User
+from app.models import Post, User
 from schemas import PostCreate, PostResponse
 from auth import get_current_user
+from app.repositories import post_repository
 
 
 router = APIRouter()
@@ -28,11 +29,7 @@ def get_posts(db: Session = Depends(get_db), skip: int = 0, limit:int = Query(de
 @router.get("/{post_id}", response_model=PostResponse)
 def get_post(post_id: int, db: Session = Depends(get_db)):
 
-    post = (
-        db.query(Post)
-        .filter(Post.id == post_id)
-        .first()
-    )
+    post = post_repository.get_post_by_id(db, post_id)
 
     if post is None:
         raise HTTPException(
