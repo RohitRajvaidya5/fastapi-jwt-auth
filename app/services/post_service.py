@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from typing import cast
 from app.models import User
 from app.repositories import post_repository
-from schemas import PostCreate
+from app.schemas import PostCreate
 
 
 def create_post(
@@ -49,13 +49,18 @@ def delete_post(
     post = post_repository.get_post_by_id(db, post_id)
 
     if post is None:
-        # raise HTTPException(
-        #     status_code=status.HTTP_404_NOT_FOUND,
-        #     detail="Post not found"
-        # )
         raise PostNotFoundException()
 
     if cast(int, post.owner_id) != cast(int, current_user.id):
         raise UnauthorizedActionException()
 
     return post_repository.delete_post(db, post)
+
+
+def get_post(db: Session, post_id: int):
+    post = post_repository.get_post_by_id(db, post_id)
+
+    if post is None:
+        raise PostNotFoundException()
+
+    return post

@@ -1,16 +1,16 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
+from app.services import user_service
 from database import get_db
 from app.models import User
-from schemas import UserCreate, UserResponse, UserUpdate
+from app.schemas import UserCreate, UserResponse, UserUpdate
 from typing import List, cast
-from utils import hash_password
 from fastapi.security import OAuth2PasswordRequestForm
-from auth import create_access_token
+from app.auth import create_access_token
 from utils import verify_password
-from schemas import Token
-from auth import get_current_user, require_admin
+from app.schemas import Token
+from app.auth import get_current_user, require_admin
 
 router = APIRouter()
 
@@ -22,6 +22,8 @@ router = APIRouter()
 #     current_user: User = Depends(get_current_user)
 # ):
 #     return current_user
+
+
 @router.get("/profile")
 def get_profile(
     current_user : str = Depends(get_current_user)
@@ -76,58 +78,19 @@ def get_users(
     limit : int = 10,
     db: Session = Depends(get_db)
 ):
-    # users = db.query(User).all()
-    users = (
-    db.query(User)
-    .offset(skip)
-    .limit(limit)
-    .all()
-)
+    return user_service.get_users(db, skip=skip, limit=limit)
 
-    return users
 
 @router.get("/{user_id}", response_model=UserResponse)
 def get_user(user_id:int, db: Session = Depends(get_db)):
-
-    user = db.query(User).filter(User.id == user_id).first()
-
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-
-    return user
+    return user_service.get_user(db, user_id)
 
 @router.post("/", response_model=UserResponse)
 def create_user(
     user : UserCreate,
     db : Session = Depends(get_db)
 ):
-
-    existing_user = (
-        db.query(User)
-        .filter(User.email == user.email)
-        .first()
-    )
-
-    if existing_user:
-        raise HTTPException(
-            status_code = status.HTTP_409_CONFLICT,
-            detail="Email already exists."
-        )
-
-    db_user = User(
-            username = user.username,
-            email = user.email,
-            password = hash_password(user.password),
-            role = user.role
-        )
-
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+    return user_service.create_user(db, user)
 
 @router.put("/{user_id}", response_model=UserResponse)
 def update_user(
@@ -135,21 +98,7 @@ def update_user(
     updated_user : UserUpdate,
     db : Session = Depends(get_db)
 ):
-    user = db.query(User).filter(User.id == user_id).first()
-
-    if user is None:
-        raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="User not found"
-    )
-
-    setattr(user, "username", updated_user.username)
-    setattr(user, "email", updated_user.email)
-    setattr(user, "password", updated_user.password)
-
-    db.commit()
-    db.refresh(user)
-    return user
+    return user_service.update_user(db, user_id, updated_user)
 
 
 @router.delete("/{user_id}")
@@ -157,17 +106,7 @@ def delete_user(
     user_id : int,
     db : Session = Depends(get_db),
     admin:User=Depends(require_admin)):
-
-    db_user = db.query(User).filter(User.id == user_id).first()
-
-    if db_user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-
-    db.delete(db_user)
-    db.commit()
+    user_service.delete_user(db, user_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

@@ -31,6 +31,7 @@ def get_post_by_id(db: Session, post_id: int):
         .first()
     )
 
+
 def update_post(db: Session, post: Post):
    
    db.commit()
