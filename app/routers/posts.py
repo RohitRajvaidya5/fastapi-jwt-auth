@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.orm import Session
 from starlette import status
 
+from app.services import post_service
 from database import get_db
 from app.models import Post, User
 from schemas import PostCreate, PostResponse
@@ -16,15 +17,7 @@ router = APIRouter()
 
 @router.get("/", response_model=list[PostResponse])
 def get_posts(db: Session = Depends(get_db), skip: int = 0, limit:int = Query(default=10, le=100)):
-
-    posts = (
-        db.query(Post)
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
-
-    return posts
+    return post_repository.get_posts(db, skip=skip, limit=limit)
 
 @router.get("/{post_id}", response_model=PostResponse)
 def get_post(post_id: int, db: Session = Depends(get_db)):
@@ -39,64 +32,20 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
 
     return post
 
-
-
-
 @router.post("/", response_model=PostResponse)
 def create_post(post: PostCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
 
-    db_post = Post(
-        title=post.title,
-        content=post.content,
-        owner_id=current_user.id
-    )
-
-    db.add(db_post)
-    db.commit()
-    db.refresh(db_post)
-
-    return db_post
+    return post_service.create_post(db, post, current_user)
 
 
 @router.put("/{post_id}", response_model=PostResponse)
 def update_post(
     post_id: int,
-    post: PostCreate,
+    post_data: PostCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
     ):
-
-    db_post = (
-        db.query(Post)
-        .filter(Post.id == post_id)
-        .first()
-    )
-
-    if db_post is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Post not found"
-        )
-
-    if db_post.owner_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Post owner information is missing."
-        )
-
-    if not cast(bool, db_post.owner_id != current_user.id):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You are not authorized to update this post."
-        )
-
-    setattr(db_post, "title", post.title)
-    setattr(db_post, "content", post.content)
-
-    db.commit()
-    db.refresh(db_post)
-
-    return db_post
+    return post_service.update_post(db, post_id, post_data, current_user)
 
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -106,26 +55,5 @@ def delete_post(
     current_user: User = Depends(get_current_user)
     ):
 
-    db_post = (
-        db.query(Post)
-        .filter(Post.id == post_id)
-        .first()
-    )
-
-    if db_post is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Post not found"
-        )
-
-    if cast(int, db_post.owner_id) != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You are not authorized to delete this post."
-        )
-
-    db.delete(db_post)
-    db.commit()
-
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return post_service.delete_post(db, post_id, current_user)
 
