@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from app.routers.users import router as user_router
 from app.routers.posts import router as post_router
-from database import engine, Base
+from app.database import engine, Base
 import app.models as models
 from fastapi.staticfiles import StaticFiles
 

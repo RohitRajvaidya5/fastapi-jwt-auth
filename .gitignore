@@ -31,3 +31,25 @@ archive.zip
 .DS_Store
 
 .codspeed
+
+.env
+
+# Environment
+.env
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# IDE
+.vscode/
+.idea/
+
+# Database files
+*.db
+*.sqlite3
+
+# Pytest
+.pytest_cache/

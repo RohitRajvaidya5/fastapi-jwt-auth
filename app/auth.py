@@ -5,14 +5,13 @@ from jose import jwt, JWTError
 from typing import Optional, cast
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from database import get_db
+from app.database import get_db
 from app.models import User
+from app.core.config import setting
 
-SECRET_KEY = "your-super-secret-key-change-this-in-production"
-
-ALGORITHM = "HS256"
-
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = setting.SECRET_KEY
+ALGORITHM = setting.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = setting.ACCESS_TOKEN_EXPIRE_MINUTES
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="users/login"

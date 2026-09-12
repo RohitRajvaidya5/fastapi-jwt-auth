@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from starlette import status
 from app.services import post_service
-from database import get_db
+from app.database import get_db
 from app.models import User
 from app.schemas import PostCreate, PostResponse
 from app.auth import get_current_user

@@ -13,7 +13,6 @@ def create_post(db: Session, post_data, current_user):
     db.add(db_post)
     db.commit()
     db.refresh(db_post)
-
     return db_post
 
 def get_posts(db: Session, skip: int = 0, limit: int = 10):
@@ -33,7 +32,7 @@ def get_post_by_id(db: Session, post_id: int):
 
 
 def update_post(db: Session, post: Post):
-   
+
    db.commit()
    db.refresh(post)
 
